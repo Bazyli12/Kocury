@@ -34,36 +34,30 @@ module.exports = class catDownloader {
         const fs = require("fs");
 
         function saveToFile(cats) {
-            if (fs.existsSync(__dirname + "/cats/cat.json")) {
-                console.log("123");
+            if (fs.existsSync(__dirname + "/cats/cats.json")) {
+                let rawcats = fs.readFileSync(__dirname + "/cats/cats.json");
+                let catsJson = JSON.parse(rawcats);
+                fs.writeFileSync(
+                    __dirname + "/cats/cats.json",
+                    JSON.stringify(
+                        { data: [...catsJson.data, ...cats] },
+                        null,
+                        4
+                    ),
+                    "utf8"
+                );
             } else {
-                console.log("3");
+                fs.writeFileSync(
+                    __dirname + "/cats/cats.json",
+                    JSON.stringify({ data: [...cats] }, null, 4),
+                    "utf8"
+                );
             }
-
-            let date = new Date();
-            fs.writeFileSync(
-                __dirname +
-                    `/${config.settings.directory}/${
-                        config.settings.filePrefix
-                    }${date.getFullYear()}-${String(
-                        date.getMonth() + 1
-                    ).padStart(2, "0")}-${String(date.getDate()).padStart(
-                        2,
-                        "0"
-                    )} ${String(date.getHours()).padStart(2, "0")}-${String(
-                        date.getMinutes()
-                    ).padStart(2, "0")}-${String(date.getSeconds()).padStart(
-                        2,
-                        "0"
-                    )}.json`,
-                JSON.stringify(cats, null, 4),
-                "utf8"
-            );
         }
 
         console.log("start");
 
-        let cats = { data: [] };
+        let cats = [];
 
         // pobieranie zdjec, filmow z kanalu
         document
@@ -72,19 +66,19 @@ module.exports = class catDownloader {
             .forEach((el) => {
                 if (el.id.includes("chat-messages")) {
                     if (el.querySelector("video")) {
-                        return cats.data.push(el.querySelector("video").src);
+                        return cats.push(el.querySelector("video").src);
                     } else {
                         el.querySelectorAll("*").forEach((el) => {
                             if (el.classList.value.includes("originalLink")) {
-                                return cats.data.push(el.getAttribute("href"));
+                                return cats.push(el.getAttribute("href"));
                             }
                         });
                     }
                 }
             });
 
-        console.log(cats.data);
-        console.log(cats.data.length);
+        console.log(cats);
+        console.log(cats.length);
 
         if (fs.existsSync(__dirname + "/cats")) {
             saveToFile(cats);
